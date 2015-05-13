@@ -1,15 +1,31 @@
+// Train and test liblinear model in C++ format.
 //
-//  main.cpp
-//  LibLinearObj
-//
-//  Created by GuoPei on 15/5/13.
-//  Copyright (c) 2015年 GuoPei. All rights reserved.
-//
-
 #include <iostream>
+#include "linear.h"
+#include "LibLinear.hpp"
+using namespace std;
 
-int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
+int main(int argc, char* argv[])
+{
+	// Set up training data
+	float labels[4] = { 1.0, -1.0, -1.0, -1.0 };
+	Mat labelsMat(4, 1, CV_32FC1, labels);
+
+	float trainingData[4][2] = { { 501, 10 }, { 255, 10 }, { 501, 255 }, { 10, 501 } };
+	Mat trainingDataMat(4, 2, CV_32FC1, trainingData);
+
+	float testData[2] = { 100, 100 };
+	Mat testDataMat(1, 2, CV_32FC1, testData);
+    int i = 100;
+    while (i>0) {
+        LibLinear *linear = new LibLinear;
+        Mat outputMat;
+        parameter param = LinearParam::construct_param();
+        linear->train_model(trainingDataMat, labelsMat, param);
+        linear->predict_value(testDataMat, outputMat);
+        delete linear;
+        i--;
+    }
+
+	return 0;
 }
