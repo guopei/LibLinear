@@ -88,15 +88,15 @@ public:
 		_model = nullptr;
 		_sample = nullptr;
 	}
-	void write_model(string filename){
-		save_model(filename.c_str(), _model);
+	void save_model(string filename){
+        ::save_model(filename.c_str(), _model);
 	}
 	/**
 	 * FeatureMat: M samples * N features.
 	 * LabelMat: N lables * 1.
 	 * param: liblinear parameters.
 	 */
-	void train_model(Mat &FeatureMat,
+	void train(Mat &FeatureMat,
 		Mat &LabelMat,
 		parameter &param){
 		_param = param;
@@ -105,7 +105,7 @@ public:
             free_and_destroy_model(&_model);
         }
         const int64 s1 = cv::getTickCount();
-		_model = train(&_prob, &_param);
+        _model = ::train(&_prob, &_param);
         const int64 s2 = cv::getTickCount();
         fprintf(stdout, "train finished! Use %8d s\n", static_cast<int>((s2 - s1) / cv::getTickFrequency()));
         // clear internal data right after model is trained.
@@ -119,12 +119,29 @@ public:
             _sample = nullptr;
         }
 	}
-	void predict_value(Mat &SampleMat, Mat &OutputMat){
+    
+    /**
+     * SampleMat contains only one sample.
+     */
+    double predict(Mat &SampleMat){
+        assert(SampleMat.rows == 1);
+        feature_node *x = nullptr;
+        convert_test_data(SampleMat, &x);
+        double out = ::predict(_model, x);
+        free(x);
+        return out;
+    }
+    
+    /**
+     * SamplesMat contains multiple samples in multiple rows.
+     * OutputMat is the predicted labels for each sample.
+     */
+	void predict(Mat &SamplesMat, Mat &OutputMat){
 		feature_node *x = nullptr;
-		OutputMat.create(SampleMat.rows, 1, CV_32FC1);
-		for (int i = 0; i < SampleMat.rows; i++){
-			convert_test_data(SampleMat.row(i), &x);
-			double out = predict(_model, x);
+		OutputMat.create(SamplesMat.rows, 1, CV_32FC1);
+		for (int i = 0; i < SamplesMat.rows; i++){
+			convert_test_data(SamplesMat.row(i), &x);
+            double out = ::predict(_model, x);
 			OutputMat.at<float>(i) = out;
 			free(x);
 		}

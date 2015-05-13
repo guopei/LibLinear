@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
         LibLinear *linear = new LibLinear;
         Mat outputMat;
         parameter param = LinearParam::construct_param();
-        linear->train_model(trainingDataMat, labelsMat, param);
-        linear->predict_value(testDataMat, outputMat);
+        linear->train(trainingDataMat, labelsMat, param);
+        linear->predict(testDataMat, outputMat);
         delete linear;
         i--;
     }
