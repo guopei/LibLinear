@@ -183,6 +183,7 @@ public:
             free(_prob.x);
 		if(_sample)
             free(_sample);
+        cout<<"destructor is called\n";
 	}
     
 	LibLinear(){

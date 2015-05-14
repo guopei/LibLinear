@@ -20,10 +20,11 @@ int main(int argc, char* argv[])
     while (i>0) {
         LibLinear *linear = new LibLinear;
         Mat outputMat;
-        parameter param = LinearParam::construct_param();
+        parameter param = LinearParam::construct_param(0);
         linear->train(trainingDataMat, labelsMat, param);
         linear->predict(testDataMat, outputMat);
         delete linear;
+        cout<<outputMat;
         i--;
     }
 
