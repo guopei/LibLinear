@@ -44,11 +44,7 @@ public:
         int *weight_label = nullptr;
         double* weight = nullptr;
         
-        if(solver_type > L2R_LR_DUAL || solver_type < L2R_LR)
-            exit_with_help();
-        
-        switch (solver_type)
-        {
+        switch (solver_type){
             case L2R_LR:
             case L2R_L2LOSS_SVC:
                 eps = 0.01;
@@ -174,7 +170,7 @@ private:
 public:
     
 	~LibLinear(){
-		destroy_param(&_param);
+            destroy_param(&_param);
         if(_model)
             free_and_destroy_model(&_model);
 		if(_prob.y)
@@ -207,13 +203,21 @@ public:
 		parameter &param){
 		_param = param;
 		convert_train_data(FeatureMat, LabelMat, _prob);
+        
+        // check feasiblity of _model, _prob and _param
         if(_model){
             free_and_destroy_model(&_model);
         }
+        if(NULL != ::check_parameter(&_prob, &_param))
+            LinearParam::exit_with_help();
+        
+        // time and train
         const int64 s1 = cv::getTickCount();
         _model = ::train(&_prob, &_param);
         const int64 s2 = cv::getTickCount();
-        fprintf(stdout, "train finished! Use %8d s\n", static_cast<int>((s2 - s1) / cv::getTickFrequency()));
+        fprintf(stdout, "train finished! Use %8d s\n",
+                static_cast<int>((s2 - s1) / cv::getTickFrequency()));
+        
         // clear internal data right after model is trained.
         // as they are useless now.
         if(_sample){
@@ -252,6 +256,57 @@ public:
 			free(x);
 		}
 	}
+    
+    /*
+     * ValueMat contains Sigma(w*x)
+     */
+    double predict_values(Mat &SampleMat, Mat &ValueMat){
+        assert(SampleMat.rows == 1);
+        feature_node *x = nullptr;
+        convert_test_data(SampleMat, &x);
+        
+        int nr_class=_model->nr_class;
+        int nr_w;
+        if(nr_class==2 && _model->param.solver_type != MCSVM_CS)
+            nr_w = 1;
+        else
+            nr_w = nr_class;
+        ValueMat.create(nr_w, 1, CV_32FC1);
+        double *v = Malloc(double, nr_w);
+        double out = ::predict_values(_model, x, v);
+        for (int i = 0; i < nr_w; i++) {
+            ValueMat.at<float>(i) = v[i];
+        }
+        free(x);
+        free(v);
+        return out;
+    }
+    
+    double predict_probabilities(Mat &SampleMat, Mat &ProbMat){
+        assert(SampleMat.rows == 1);
+        feature_node *x = nullptr;
+        convert_test_data(SampleMat, &x);
+        
+        int nr_class=_model->nr_class;
+        int nr_w;
+        if(nr_class==2 && _model->param.solver_type != MCSVM_CS)
+            nr_w = 1;
+        else
+            nr_w = nr_class;
+        ProbMat.create(nr_w, 1, CV_32FC1);
+        double *p = Malloc(double, nr_w);
+        double out = ::predict_probability(_model, x, p);
+        for (int i = 0; i < nr_w; i++) {
+            ProbMat.at<float>(i) = p[i];
+        }
+        
+        free(x);
+        free(p);
+        if(!check_probability_model(_model)){
+            cout<<"This solver does not support probability output, please use Solver 0 or 7 instead\n";
+        }
+        return out;
+    }
     
     void load_model(string model_file_name){
         if(_model){
