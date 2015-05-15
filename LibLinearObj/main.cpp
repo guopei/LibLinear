@@ -7,19 +7,31 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     // Set up training data
-    float labels[6] = { 1.0, 1.0, 1.0, -1.0, -1.0, -1.0 };
-    Mat labelsMat(6, 1, CV_32FC1, labels);
+    float labels[12] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+    Mat labelsMat(12, 1, CV_32FC1, labels);
     
-    float trainingData[6][2] = { { 3, 1 }, { 3, -1 }, { 6, 1 },
-        { -3, 1 }, { -3, -1 }, { -6, 0 } };
-    Mat trainingDataMat(6, 2, CV_32FC1, trainingData);
+    float trainingData[12][2] = { { 1, 1 }, { 3, 1 }, { 1, 3 },
+        { 1, -1 }, { 3, -1 }, { 1, -3 }, { -1, 1 }, { -3, 1 }, { -1, 3 },
+        { -1, -1 }, { -3, -1 }, { -1, -3 }};
+    Mat trainingDataMat(12, 2, CV_32FC1, trainingData);
     
-    float testData[2][2] = { { 4, 0 }, {-1, 0} };
-    Mat testDataMat(2, 2, CV_32FC1, testData);
+    float testData[4][2] = { { 4, 4 }, {4, -4}, {-4, 4}, {-4, -4} };
+    Mat testDataMat(4, 2, CV_32FC1, testData);
     
+    // train model
+    // there are 8 solvers(0~7) to choose in paramter.
+    // choose
     LibLinear *linear = new LibLinear;
     parameter param = LinearParam::construct_param(0);
     linear->train(trainingDataMat, labelsMat, param);
+    // user should take care of the paramter deconstructor.
+    LinearParam::destroy_param(&param);
+    
+    // save and load model
+    string model_file = "train.model";
+    linear->save_model(model_file);
+    linear->load_model(model_file);
     
     // predict one sample each call
     for (int i = 0; i < testDataMat.rows; i++){
@@ -34,7 +46,7 @@ int main(int argc, char* argv[])
     linear->predict(testDataMat, outputMat);
     cout<<outputMat<<endl;
     
-    // predict value of one sample.
+    // predict Sigma(W*x) or the distance from hyperplane.
     for (int i = 0; i < testDataMat.rows; i++){
         Mat sampleMat = testDataMat.row(i);
         Mat valueMat;

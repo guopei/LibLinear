@@ -71,6 +71,13 @@ public:
         return parameter{ solver_type, eps, C, nr_weight, weight_label, weight, p };
     }
     
+    static void destroy_param(parameter *param){
+        if(param){
+            ::destroy_param(param);
+            param = nullptr;
+        }
+    }
+    
     static void exit_with_help()
     {
         printf(
@@ -170,7 +177,7 @@ private:
 public:
     
 	~LibLinear(){
-            destroy_param(&_param);
+            //destroy_param(&_param);
         if(_model)
             free_and_destroy_model(&_model);
 		if(_prob.y)
@@ -189,8 +196,8 @@ public:
 		_sample = nullptr;
 	}
     
-	void save_model(string filename){
-        ::save_model(filename.c_str(), _model);
+	void save_model(string model_file_name){
+        ::save_model(model_file_name.c_str(), _model);
 	}
     
 	/**
