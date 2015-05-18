@@ -161,6 +161,30 @@ private:
 			prob.y[i] = LabelMat.at<float>(i);
 	}
     
+    void convert_train_data(const float *data, const float *label,
+                            int nSamples, int nFeatures,
+                            problem &prob){
+        prob.bias = -1;
+        prob.l = nSamples;
+        prob.n = nFeatures;
+        prob.x = Malloc(feature_node *, prob.l);
+        prob.y = Malloc(double, prob.l);
+        int feature_num = prob.n + 1;
+        _sample = Malloc(feature_node, prob.l*feature_num);
+        for (int i = 0; i < prob.l; i++)
+        {
+            for (int j = 0; j < prob.n; j++)
+            {
+                _sample[i*feature_num+j].index = j+1;
+                _sample[i*feature_num+j].value = data[i*prob.n+j];
+            }
+            _sample[(i+1)*feature_num-1].index = -1;
+            prob.x[i] = &_sample[i*feature_num];
+        }
+        for (int i = 0; i < prob.l; i++)
+            prob.y[i] = label[i];
+    }
+    
 	/**
 	 * one sample each call.
 	 */
@@ -173,6 +197,18 @@ private:
 		}
 		(*x)[feature_num - 1].index = -1;
 	}
+    
+    void convert_test_data(const float *sample, int nFeatures,
+                           feature_node **x){
+        int feature_num = nFeatures + 1;
+        *x = Malloc(feature_node, feature_num);
+        for (int i = 0; i < nFeatures; i++){
+            (*x)[i].index = i+1;
+            (*x)[i].value = sample[i];
+        }
+        (*x)[feature_num - 1].index = -1;
+    }
+
 
 public:
     
@@ -219,11 +255,11 @@ public:
             LinearParam::exit_with_help();
         
         // time and train
-        const int64 s1 = cv::getTickCount();
+        //const int64 s1 = cv::getTickCount();
         _model = ::train(&_prob, &_param);
-        const int64 s2 = cv::getTickCount();
-        fprintf(stdout, "train finished! Use %8d s\n",
-                static_cast<int>((s2 - s1) / cv::getTickFrequency()));
+        //const int64 s2 = cv::getTickCount();
+        //fprintf(stdout, "train finished! Use %8d s\n",
+                //static_cast<int>((s2 - s1) / cv::getTickFrequency()));
         
         // clear internal data right after model is trained.
         // as they are useless now.
@@ -236,6 +272,36 @@ public:
             _sample = nullptr;
         }
 	}
+    
+    void train(const float *data, const float *label,
+               int nSamples, int nFeatures, parameter &param){
+        _param = param;
+        convert_train_data(data, label, nSamples, nFeatures, _prob);
+        // check feasiblity of _model, _prob and _param
+        if(_model){
+            free_and_destroy_model(&_model);
+        }
+        if(NULL != ::check_parameter(&_prob, &_param))
+            LinearParam::exit_with_help();
+        
+        // time and train
+        //const int64 s1 = cv::getTickCount();
+        _model = ::train(&_prob, &_param);
+        //const int64 s2 = cv::getTickCount();
+        //fprintf(stdout, "train finished! Use %8d s\n",
+                //static_cast<int>((s2 - s1) / cv::getTickFrequency()));
+        
+        // clear internal data right after model is trained.
+        // as they are useless now.
+        if(_sample){
+            free(_prob.x);
+            free(_prob.y);
+            free(_sample);
+            _prob.x = nullptr;
+            _prob.y = nullptr;
+            _sample = nullptr;
+        }
+    }
     
     /**
      * SampleMat contains only one sample.
@@ -286,6 +352,18 @@ public:
         }
         free(x);
         free(v);
+        return out;
+    }
+    
+    double predict_values(float *sample, int nFeatures, float *value){
+        
+        feature_node *x = nullptr;
+        convert_test_data(sample, nFeatures, &x);
+        assert(_model->nr_class == 2);
+        
+        double pval = 0;
+        double out = ::predict_values(_model, x, &pval);
+        *value = pval;
         return out;
     }
     

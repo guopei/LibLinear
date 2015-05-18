@@ -24,7 +24,11 @@ int main(int argc, char* argv[])
     // choose
     LibLinear *linear = new LibLinear;
     parameter param = LinearParam::construct_param(0);
+    // data as Mat
     linear->train(trainingDataMat, labelsMat, param);
+    // data as float*
+    linear->train(trainingDataMat.ptr<float>(), labelsMat.ptr<float>(),
+                  12, 2, param);
     // user should take care of the paramter deconstructor.
     LinearParam::destroy_param(&param);
     
@@ -53,6 +57,13 @@ int main(int argc, char* argv[])
         double out = linear->predict_values(sampleMat, valueMat);
         cout<<out<<" "<<endl;
         cout<<valueMat<<endl;
+        cout<<"<<<<<<<<<<<<<<<<<\n";
+        float value = 0;
+        out = linear->predict_values(sampleMat.ptr<float>(), testDataMat.cols,
+                              &value);
+        cout<<out<<" "<<endl;
+        cout<<value<<endl;
+        cout<<">>>>>>>>>>>>>>>>>\n";
     }
     
     // predict probability of one sample
