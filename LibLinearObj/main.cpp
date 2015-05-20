@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
         cout<<probMat<<endl;
     }
     
+    linear->release();
     delete linear;
     
     return 0;

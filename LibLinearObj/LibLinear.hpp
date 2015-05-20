@@ -222,7 +222,7 @@ public:
             free(_prob.x);
 		if(_sample)
             free(_sample);
-        cout<<"destructor is called\n";
+        //cout<<"destructor is called\n";
 	}
     
 	LibLinear(){
@@ -231,6 +231,25 @@ public:
 		_model = nullptr;
 		_sample = nullptr;
 	}
+    
+    void release(){
+        if(_model){
+            free_and_destroy_model(&_model);
+            _model = nullptr;
+        }
+        if(_prob.x){
+            free(_prob.x);
+            _prob.x = nullptr;
+        }
+        if(_prob.y){
+            free(_prob.y);
+            _prob.y = nullptr;
+        }
+        if(_sample){
+            free(_sample);
+            _sample = nullptr;
+        }
+    }
     
 	void save_model(string model_file_name){
         ::save_model(model_file_name.c_str(), _model);
@@ -398,5 +417,9 @@ public:
             free_and_destroy_model(&_model);
         }
         _model = ::load_model(model_file_name.c_str());
+    }
+    
+    void get_w(double *val){
+        memcpy(val, _model->w, sizeof(double)*_model->nr_feature);
     }
 };
