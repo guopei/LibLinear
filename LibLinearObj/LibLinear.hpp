@@ -218,7 +218,7 @@ public:
             free_and_destroy_model(&_model);
 		if(_prob.y)
             free(_prob.y);
-		if(_prob.y)
+		if(_prob.x)
             free(_prob.x);
 		if(_sample)
             free(_sample);
