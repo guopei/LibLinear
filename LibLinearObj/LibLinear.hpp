@@ -383,6 +383,7 @@ public:
         double pval = 0;
         double out = ::predict_values(_model, x, &pval);
         *value = pval;
+        free(x);
         return out;
     }
     
