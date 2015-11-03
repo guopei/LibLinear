@@ -25,12 +25,12 @@ template <class S, class T> static inline void clone(T*& dst, S* src, int n)
 static void print_string_stdout(const char *s)
 {
 	fputs(s,stdout);
-	fflush(stdout);
+	//fflush(stdout);
 }
 
 static void (*liblinear_print_string) (const char *) = &print_string_stdout;
 
-#if 0
+#if 1
 static void info(const char *fmt,...)
 {
 	char buf[BUFSIZ];
@@ -915,8 +915,8 @@ static void solve_l2r_l1l2_svc(
 		}
 
 		iter++;
-		//if(iter % 10 == 0)
-			//info(".");
+		if(iter % 10 == 0)
+			info(".");
 
 		if(PGmax_new - PGmin_new <= eps)
 		{
@@ -925,7 +925,7 @@ static void solve_l2r_l1l2_svc(
 			else
 			{
 				active_size = l;
-				//info("*");
+				info("*");
 				PGmax_old = INF;
 				PGmin_old = -INF;
 				continue;
@@ -939,7 +939,7 @@ static void solve_l2r_l1l2_svc(
 			PGmin_old = -INF;
 	}
 
-	//info("\noptimization finished, #iter = %d\n",iter);
+	info("\noptimization finished, #iter = %d\n",iter);
 	if (iter >= max_iter)
 		info("\nWARNING: reaching max number of iterations\nUsing -s 2 may be faster (also see FAQ)\n\n");
 
@@ -955,8 +955,8 @@ static void solve_l2r_l1l2_svc(
 		if(alpha[i] > 0)
 			++nSV;
 	}
-	//info("Objective value = %lf\n",v/2);
-	//info("nSV = %d\n",nSV);
+	info("Objective value = %lf\n",v/2);
+	info("nSV = %d\n",nSV);
 
 	delete [] QD;
 	delete [] alpha;
