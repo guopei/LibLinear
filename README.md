@@ -1,8 +1,9 @@
-##LibLinear类说明文档
----
+#LibLinear类
+
+
 LibLinear类是对台湾大学Chih-Jen Lin博士实验室开源的liblinear代码进行打包封装而来的，主要的改进是屏蔽了很多实现细节，只把最主要的功能暴露给用户，同时与OpenCV的Mat格式进行兼容。
 
-###训练接口
+##训练接口
 
 ```
 void LibLinear::train(Mat &trainingdataMat, Mat &labelsMat, parameter &param);
@@ -65,7 +66,7 @@ void LibLinear::load_model(string model_file_name);
 
 model_file_name是模型文件的名字。
 
-### 测试接口
+## 测试接口
 
 ```
 double LibLinear::predict(Mat &SampleMat);
@@ -101,7 +102,7 @@ double LibLinear::predict_probabilities(Mat &SampleMat, Mat &ProbMat);
 
 SamplesMat是输入的待预测的样本，是1*N的行向量，ProbMat是返回的该样本的分类概率，是1*K的矩阵，K根据分类标签数确定，对于二分类，则只有一个距离，正是我们想要的标量值。注意，该接口只有在选择solver 0或者7时正常得到概率值，其他情况下ProbMat为0。返回值是样本的分类标签。
 
-###其它接口
+##其它接口
 
 如果想要输出模型文件中的分类权重，请使用如下接口：
 
@@ -117,7 +118,8 @@ void LibLinear::get_w(double *val);
 void LibLinear::release();
 ```
 
-###FAQ
+##FAQ
+
 Q：在什么情况下使用liblinear？  
 A：当样本的维度比较高时（例如上千到上万），可以使用liblinear，它的优势在于保证精度的前提下，大大提高训练和预测的速度。
 
